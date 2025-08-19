@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Login from './component/Login';
-import AdminDashboard from './component/AdminDashboard';
-import SecretaryDashboard from './component/SecretaryDashboard';
+import Login from './components/Login/Login';
+import AdminDashboard from './components/Dashboard/AdminDashboard';
+import SecretaryDashboard from './components/Dashboard/SecretaryDashboard';
 
 function App() {
   const [user, setUser] = useState(null);
