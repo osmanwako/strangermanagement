@@ -1,0 +1,22 @@
+:root {
+  --bg: #f6f8fb;
+  --card: #fff;
+  --muted: #6b7280;
+  --primary: #1e40af;
+  --border: #e6eef8;
+  --accent: #0ea5a4;
+}
+body { background: var(--bg); color: #0f172a; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+
+.register-card, .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; box-shadow: 0 4px 18px rgba(12,20,40,0.04); }
+
+.filters { display: grid; gap: .5rem; grid-template-columns: 1fr 220px 160px 140px 140px auto; align-items: center; margin-bottom: 1rem; }
+.visitors-table { width:100%; border-collapse: collapse; min-width: 800px; }
+.visitors-table thead th {
+  position: sticky; top:0; background: linear-gradient(180deg,#fff,#fbfdff);
+  text-align:left; padding:.7rem .9rem; border-bottom: 1px solid var(--border); color:var(--muted);
+}
+.visitors-table tbody td { padding:.6rem .9rem; border-bottom:1px solid #f1f5f9; }
+.btn-primary { background: var(--primary); color: #fff; border-radius: 8px; padding:.5rem .9rem; border:none; cursor:pointer; }
+.btn { padding:.45rem .7rem; border-radius:8px; border:1px solid var(--border); background:transparent; cursor:pointer; }
+.pagination { display:flex; gap:.6rem; align-items:center; justify-content:flex-end; margin-top:.6rem; }
