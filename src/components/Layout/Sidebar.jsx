@@ -35,33 +35,33 @@ export default function Sidebar({ userRole, activeTab, setActiveTab }) {
   const menuItems = userRole === 'admin' ? adminMenuItems : secretaryMenuItems;
 
   return (
-    <div className="w-64 bg-gradient-to-b from-blue-900 to-blue-800 text-white min-h-screen shadow-xl">
-      <div className="p-6 border-b border-blue-700">
-        <h2 className="text-xl font-bold">EFP Guest System</h2>
-        <p className="text-blue-200 text-sm capitalize">{userRole} Panel</p>
+    <div className="sidebar shadow-lg" style={{width: '250px'}}>
+      <div className="p-4 border-bottom border-light border-opacity-25">
+        <h4 className="text-white fw-bold mb-1">EFP Guest System</h4>
+        <p className="text-white-50 small mb-0 text-capitalize">{userRole} Panel</p>
       </div>
       
-      <nav className="mt-6">
+      <nav className="nav flex-column mt-3">
         {menuItems.map((item) => (
           <button
             key={item.id}
             onClick={() => setActiveTab(item.id)}
-            className={`w-full flex items-center px-6 py-3 text-left hover:bg-blue-700 transition-colors ${
-              activeTab === item.id ? 'bg-blue-700 border-r-4 border-white' : ''
+            className={`nav-link text-start border-0 bg-transparent py-3 px-4 ${
+              activeTab === item.id ? 'active' : ''
             }`}
           >
-            <i className={`${item.icon} mr-3`}></i>
+            <i className={`${item.icon} me-3`}></i>
             {item.label}
           </button>
         ))}
       </nav>
 
-      <div className="absolute bottom-0 w-64 p-6 border-t border-blue-700">
+      <div className="position-absolute bottom-0 w-100 p-4 border-top border-light border-opacity-25">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center px-4 py-2 text-red-200 hover:text-white hover:bg-red-600 rounded transition-colors"
+          className="btn btn-outline-light w-100 d-flex align-items-center justify-content-center"
         >
-          <i className="fas fa-sign-out-alt mr-3"></i>
+          <i className="fas fa-sign-out-alt me-2"></i>
           Logout
         </button>
       </div>

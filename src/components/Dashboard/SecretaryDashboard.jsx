@@ -19,7 +19,6 @@ export default function SecretaryDashboard() {
         setUser(response.data);
       } catch (error) {
         console.error('Failed to fetch user:', error);
-        // Redirect to login if not authenticated
         window.location.href = '/';
       } finally {
         setLoading(false);
@@ -31,8 +30,10 @@ export default function SecretaryDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-vh-100 d-flex align-items-center justify-content-center">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
       </div>
     );
   }
@@ -55,22 +56,22 @@ export default function SecretaryDashboard() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="d-flex min-vh-100 bg-light">
       <Sidebar userRole="secretary" activeTab={activeTab} setActiveTab={setActiveTab} />
       
-      <div className="flex-1 overflow-hidden">
-        <header className="bg-white shadow-sm border-b px-6 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-semibold text-gray-800">
+      <div className="flex-grow-1 d-flex flex-column">
+        <header className="bg-white shadow-sm border-bottom px-4 py-3">
+          <div className="d-flex justify-content-between align-items-center">
+            <h1 className="h3 mb-0">
               {activeTab === 'register' ? 'Register Visitor' : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
             </h1>
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                <p className="text-xs text-gray-500">Secretary</p>
+            <div className="d-flex align-items-center">
+              <div className="text-end me-3">
+                <p className="mb-0 fw-medium">{user?.name}</p>
+                <small className="text-muted">Secretary</small>
               </div>
-              <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-semibold">
+              <div className="bg-success rounded-circle d-flex align-items-center justify-content-center" style={{width: '40px', height: '40px'}}>
+                <span className="text-white fw-bold">
                   {user?.name?.charAt(0) || 'S'}
                 </span>
               </div>
@@ -78,7 +79,7 @@ export default function SecretaryDashboard() {
           </div>
         </header>
 
-        <main className="p-6 overflow-y-auto">
+        <main className="flex-grow-1 p-4 overflow-auto">
           {renderContent()}
         </main>
       </div>

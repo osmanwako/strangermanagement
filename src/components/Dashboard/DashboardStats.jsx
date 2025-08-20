@@ -36,18 +36,17 @@ export default function DashboardStats({ userRole }) {
         totalVisitors: visitors.length,
         activeVisitors: visitors.filter(v => !v.archived_at).length,
         weaponsRegistered: weaponsCount,
-        pendingAppointments: Math.floor(Math.random() * 10) + 5, // Mock data
-        completedAppointments: Math.floor(Math.random() * 20) + 15 // Mock data
+        pendingAppointments: Math.floor(Math.random() * 10) + 5,
+        completedAppointments: Math.floor(Math.random() * 20) + 15
       });
 
-      // Set recent activity
       setRecentActivity(visitors.slice(0, 5).map(v => ({
         id: v.id,
         type: 'visitor_registered',
         message: `${v.name} registered for ${v.destination}`,
         time: v.created_at,
         icon: 'fas fa-user-plus',
-        color: 'text-green-600'
+        color: 'text-success'
       })));
 
     } catch (error) {
@@ -57,20 +56,24 @@ export default function DashboardStats({ userRole }) {
     }
   };
 
-  const StatCard = ({ title, value, icon, color, change }) => (
-    <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-3xl font-bold text-gray-900">{value}</p>
-          {change && (
-            <p className={`text-sm ${change > 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {change > 0 ? '+' : ''}{change}% from yesterday
-            </p>
-          )}
-        </div>
-        <div className={`p-3 rounded-full ${color}`}>
-          <i className={`${icon} text-white text-xl`}></i>
+  const StatCard = ({ title, value, icon, bgColor, change }) => (
+    <div className="col-md-6 col-lg-4 mb-4">
+      <div className="card border-0 shadow-sm h-100">
+        <div className="card-body">
+          <div className="d-flex justify-content-between align-items-center">
+            <div>
+              <p className="text-muted small mb-1">{title}</p>
+              <h3 className="fw-bold mb-1">{value}</h3>
+              {change && (
+                <p className={`small mb-0 ${change > 0 ? 'text-success' : 'text-danger'}`}>
+                  {change > 0 ? '+' : ''}{change}% from yesterday
+                </p>
+              )}
+            </div>
+            <div className={`rounded-circle d-flex align-items-center justify-content-center ${bgColor}`} style={{width: '48px', height: '48px'}}>
+              <i className={`${icon} text-white`}></i>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -78,112 +81,130 @@ export default function DashboardStats({ userRole }) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="d-flex justify-content-center align-items-center" style={{height: '400px'}}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div>
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="row">
         <StatCard
           title="Today's Visitors"
           value={stats.todayVisitors}
           icon="fas fa-users"
-          color="bg-blue-500"
+          bgColor="bg-primary"
           change={12}
         />
         <StatCard
           title="Total Visitors"
           value={stats.totalVisitors}
           icon="fas fa-user-check"
-          color="bg-green-500"
+          bgColor="bg-success"
           change={8}
         />
         <StatCard
           title="Active Visitors"
           value={stats.activeVisitors}
           icon="fas fa-user-clock"
-          color="bg-yellow-500"
+          bgColor="bg-warning"
           change={-3}
         />
         <StatCard
           title="Weapons Registered"
           value={stats.weaponsRegistered}
           icon="fas fa-shield-alt"
-          color="bg-red-500"
+          bgColor="bg-danger"
         />
         <StatCard
           title="Pending Appointments"
           value={stats.pendingAppointments}
           icon="fas fa-calendar-alt"
-          color="bg-purple-500"
+          bgColor="bg-info"
         />
         <StatCard
           title="Completed Today"
           value={stats.completedAppointments}
           icon="fas fa-check-circle"
-          color="bg-indigo-500"
+          bgColor="bg-secondary"
         />
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
-        </div>
-        <div className="p-6">
-          {recentActivity.length === 0 ? (
-            <p className="text-gray-500 text-center py-4">No recent activity</p>
-          ) : (
-            <div className="space-y-4">
-              {recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-start space-x-3">
-                  <div className={`p-2 rounded-full bg-gray-100`}>
-                    <i className={`${activity.icon} ${activity.color} text-sm`}></i>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-900">{activity.message}</p>
-                    <p className="text-xs text-gray-500">
-                      {new Date(activity.time).toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-              ))}
+      <div className="row mt-4">
+        <div className="col-lg-8">
+          <div className="card border-0 shadow-sm">
+            <div className="card-header bg-white border-bottom">
+              <h5 className="card-title mb-0">Recent Activity</h5>
             </div>
-          )}
+            <div className="card-body">
+              {recentActivity.length === 0 ? (
+                <p className="text-muted text-center py-4 mb-0">No recent activity</p>
+              ) : (
+                <div className="list-group list-group-flush">
+                  {recentActivity.map((activity) => (
+                    <div key={activity.id} className="list-group-item border-0 px-0">
+                      <div className="d-flex align-items-start">
+                        <div className="bg-light rounded-circle d-flex align-items-center justify-content-center me-3" style={{width: '40px', height: '40px'}}>
+                          <i className={`${activity.icon} ${activity.color}`}></i>
+                        </div>
+                        <div className="flex-grow-1">
+                          <p className="mb-1">{activity.message}</p>
+                          <small className="text-muted">
+                            {new Date(activity.time).toLocaleString()}
+                          </small>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Quick Actions</h3>
-        </div>
-        <div className="p-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {userRole === 'secretary' && (
-              <button className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <i className="fas fa-user-plus text-2xl text-blue-600 mb-2"></i>
-                <span className="text-sm font-medium">Register Visitor</span>
-              </button>
-            )}
-            <button className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-              <i className="fas fa-calendar-plus text-2xl text-green-600 mb-2"></i>
-              <span className="text-sm font-medium">Schedule Appointment</span>
-            </button>
-            <button className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-              <i className="fas fa-download text-2xl text-purple-600 mb-2"></i>
-              <span className="text-sm font-medium">Export Report</span>
-            </button>
-            {userRole === 'admin' && (
-              <button className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <i className="fas fa-user-cog text-2xl text-orange-600 mb-2"></i>
-                <span className="text-sm font-medium">Manage Users</span>
-              </button>
-            )}
+        {/* Quick Actions */}
+        <div className="col-lg-4">
+          <div className="card border-0 shadow-sm">
+            <div className="card-header bg-white border-bottom">
+              <h5 className="card-title mb-0">Quick Actions</h5>
+            </div>
+            <div className="card-body">
+              <div className="row g-3">
+                {userRole === 'secretary' && (
+                  <div className="col-6">
+                    <button className="btn btn-outline-primary w-100 d-flex flex-column align-items-center py-3">
+                      <i className="fas fa-user-plus fs-4 mb-2"></i>
+                      <span className="small">Register Visitor</span>
+                    </button>
+                  </div>
+                )}
+                <div className="col-6">
+                  <button className="btn btn-outline-success w-100 d-flex flex-column align-items-center py-3">
+                    <i className="fas fa-calendar-plus fs-4 mb-2"></i>
+                    <span className="small">Schedule Appointment</span>
+                  </button>
+                </div>
+                <div className="col-6">
+                  <button className="btn btn-outline-info w-100 d-flex flex-column align-items-center py-3">
+                    <i className="fas fa-download fs-4 mb-2"></i>
+                    <span className="small">Export Report</span>
+                  </button>
+                </div>
+                {userRole === 'admin' && (
+                  <div className="col-6">
+                    <button className="btn btn-outline-warning w-100 d-flex flex-column align-items-center py-3">
+                      <i className="fas fa-user-cog fs-4 mb-2"></i>
+                      <span className="small">Manage Users</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
