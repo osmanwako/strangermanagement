@@ -2,16 +2,24 @@ import axios from "axios";
 
 const API = axios.create({
   baseURL: "http://127.0.0.1:8000/api",
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
   },
 });
 
-API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+// Get CSRF token before making requests
+API.interceptors.request.use(async (config) => {
+  // Get CSRF cookie for state-changing requests
+  if (['post', 'put', 'delete', 'patch'].includes(config.method)) {
+    try {
+      await axios.get('http://127.0.0.1:8000/sanctum/csrf-cookie', {
+        withCredentials: true
+      });
+    } catch (error) {
+      console.warn('Failed to get CSRF cookie:', error);
+    }
   }
   return config;
 });
