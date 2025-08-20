@@ -6,17 +6,37 @@ import WeaponManagement from '../Weapon/WeaponManagement';
 import AppointmentManagement from '../Appointment/AppointmentManagement';
 import ReportsSection from '../Reports/ReportsSection';
 import UserManagement from '../User/UserManagement';
+import { authAPI } from '../../api/Api';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      setUser(JSON.parse(userData));
-    }
+    const fetchUser = async () => {
+      try {
+        const response = await authAPI.GetUser();
+        setUser(response.data);
+      } catch (error) {
+        console.error('Failed to fetch user:', error);
+        // Redirect to login if not authenticated
+        window.location.href = '/';
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   const renderContent = () => {
     switch (activeTab) {

@@ -4,6 +4,10 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Api\VisitorController;
 use App\Http\Controllers\Api\WeaponController;
 
+Route::get('/sanctum/csrf-cookie', function () {
+    return response()->json(['message' => 'CSRF cookie set']);
+});
+
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::post('/test', function (\Illuminate\Http\Request $request) {

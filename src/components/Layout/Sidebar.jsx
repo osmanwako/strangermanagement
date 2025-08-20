@@ -1,13 +1,18 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { authAPI } from '../../api/Api';
 
 export default function Sidebar({ userRole, activeTab, setActiveTab }) {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await authAPI.Logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      navigate('/');
+    }
   };
 
   const adminMenuItems = [

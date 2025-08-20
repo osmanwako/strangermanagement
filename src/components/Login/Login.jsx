@@ -17,13 +17,9 @@ function Login({ setUser }) {
     try {
       const res = await authAPI.Login({ email, password });
 
-      const token = res.data?.token;
       const userFromLogin = res.data?.user;
 
-      if (!token) throw new Error("No token from server");
-      localStorage.setItem("token", token);
 
-      // If user object is not in login response, fetch it
       let theUser = userFromLogin;
       if (!theUser) {
         const me = await authAPI.GetUser();
@@ -32,7 +28,6 @@ function Login({ setUser }) {
 
       if (!theUser?.role) throw new Error("User role missing");
 
-      localStorage.setItem("user", JSON.stringify(theUser));
       setUser(theUser);
 
       // Navigate to correct dashboard
