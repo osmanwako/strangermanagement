@@ -30,6 +30,17 @@ export default function WeaponManagement({ userRole }) {
     setShowBarcodeModal(true);
   };
 
+  const returnWeapon = async (id) => {
+    if (window.confirm('Are you sure you want to return this weapon?')) {
+      try {
+        await weaponAPI.return(id);
+        fetchWeapons();
+      } catch (error) {
+        alert(error.response?.data?.message || 'Return failed');
+      }
+    }
+  };
+
   const deleteWeapon = async (id) => {
     if (window.confirm('Are you sure you want to delete this weapon record?')) {
       try {
@@ -41,103 +52,106 @@ export default function WeaponManagement({ userRole }) {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{height: '400px'}}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold">Registered Weapons</h3>
+    <div>
+      <div className="card border-0 shadow-sm">
+        <div className="card-header bg-white border-bottom">
+          <h5 className="card-title mb-0">Registered Weapons</h5>
         </div>
         
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
+        <div className="table-responsive">
+          <table className="table table-hover mb-0">
+            <thead className="table-light">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Weapon ID
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Visitor
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Type
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Serial Number
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Description
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Registered
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                <th>Weapon ID</th>
+                <th>Visitor</th>
+                <th>Type</th>
+                <th>Serial Number</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Registered</th>
+                <th>Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {loading ? (
+            <tbody>
+              {weapons.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="px-6 py-4 text-center">
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                      <span className="ml-2">Loading...</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : weapons.length === 0 ? (
-                <tr>
-                  <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan="8" className="text-center text-muted py-4">
                     No weapons registered
                   </td>
                 </tr>
               ) : (
                 weapons.map((weapon) => (
-                  <tr key={weapon.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm font-mono text-gray-900">
+                  <tr key={weapon.id}>
+                    <td>
+                      <span className="font-monospace fw-bold">
                         WPN-{weapon.id}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {weapon.visitor?.name || 'Unknown'}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        ID: {weapon.visitor?.id_number || 'N/A'}
+                    <td>
+                      <div>
+                        <div className="fw-medium">{weapon.visitor?.name || 'Unknown'}</div>
+                        <div className="text-muted small">ID: {weapon.visitor?.id_number || 'N/A'}</div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                        {weapon.weapon_type || weapon.type}
+                    <td>
+                      <span className="badge bg-danger">
+                        {weapon.type}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {weapon.serial || 'N/A'}
+                    <td className="font-monospace">{weapon.serial || 'N/A'}</td>
+                    <td>{weapon.description || 'No description'}</td>
+                    <td>
+                      <span className={`badge ${weapon.status === 'returned' ? 'bg-success' : 'bg-warning text-dark'}`}>
+                        {weapon.status}
+                      </span>
+                      {weapon.returned_at && (
+                        <div className="text-muted small mt-1">
+                          Returned: {new Date(weapon.returned_at).toLocaleString()}
+                        </div>
+                      )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {weapon.weapon_description || weapon.description || 'No description'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="text-muted small">
                       {new Date(weapon.created_at).toLocaleString()}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                      <button
-                        onClick={() => showBarcode(weapon)}
-                        className="text-blue-600 hover:text-blue-900"
-                      >
-                        <i className="fas fa-barcode mr-1"></i>
-                        Barcode
-                      </button>
-                      {userRole === 'admin' && (
+                    <td>
+                      <div className="btn-group btn-group-sm">
                         <button
-                          onClick={() => deleteWeapon(weapon.id)}
-                          className="text-red-600 hover:text-red-900"
+                          onClick={() => showBarcode(weapon)}
+                          className="btn btn-outline-primary"
+                          title="Show Barcode"
                         >
-                          <i className="fas fa-trash mr-1"></i>
-                          Delete
+                          <i className="fas fa-barcode"></i>
                         </button>
-                      )}
+                        {userRole === 'secretary' && weapon.status === 'stored' && (
+                          <button
+                            onClick={() => returnWeapon(weapon.id)}
+                            className="btn btn-outline-success"
+                            title="Return Weapon"
+                          >
+                            <i className="fas fa-undo"></i>
+                          </button>
+                        )}
+                        {userRole === 'admin' && (
+                          <button
+                            onClick={() => deleteWeapon(weapon.id)}
+                            className="btn btn-outline-danger"
+                            title="Delete"
+                          >
+                            <i className="fas fa-trash"></i>
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -149,49 +163,50 @@ export default function WeaponManagement({ userRole }) {
 
       {/* Barcode Modal */}
       {showBarcodeModal && selectedWeapon && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Weapon Barcode</h3>
-              <button
-                onClick={() => setShowBarcodeModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <i className="fas fa-times"></i>
-              </button>
-            </div>
-            
-            <div className="text-center space-y-4">
-              <div>
-                <p className="text-sm text-gray-600">Weapon ID</p>
-                <p className="font-mono font-semibold">WPN-{selectedWeapon.id}</p>
+        <div className="modal show d-block" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Weapon Barcode</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowBarcodeModal(false)}
+                ></button>
               </div>
               
-              <div>
-                <p className="text-sm text-gray-600">Type</p>
-                <p className="font-semibold">{selectedWeapon.weapon_type || selectedWeapon.type}</p>
-              </div>
-              
-              <div>
-                <p className="text-sm text-gray-600">Serial</p>
-                <p className="font-mono">{selectedWeapon.serial}</p>
+              <div className="modal-body text-center">
+                <div className="mb-3">
+                  <p className="text-muted mb-1">Weapon ID</p>
+                  <p className="font-monospace fw-bold">WPN-{selectedWeapon.id}</p>
+                </div>
+                
+                <div className="mb-3">
+                  <p className="text-muted mb-1">Type</p>
+                  <p className="fw-bold">{selectedWeapon.type}</p>
+                </div>
+                
+                <div className="mb-3">
+                  <p className="text-muted mb-1">Serial</p>
+                  <p className="font-monospace">{selectedWeapon.serial}</p>
+                </div>
+
+                <div className="py-3">
+                  <BarcodeGenerator value={`WPN-${selectedWeapon.id}`} />
+                </div>
               </div>
 
-              <div className="py-4">
-                <BarcodeGenerator value={`WPN-${selectedWeapon.id}`} />
-              </div>
-
-              <div className="flex space-x-3">
+              <div className="modal-footer">
                 <button
                   onClick={() => window.print()}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="btn btn-primary"
                 >
-                  <i className="fas fa-print mr-2"></i>
+                  <i className="fas fa-print me-2"></i>
                   Print
                 </button>
                 <button
                   onClick={() => setShowBarcodeModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="btn btn-secondary"
                 >
                   Close
                 </button>

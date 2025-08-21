@@ -8,13 +8,25 @@ class Weapon extends Model
 {
     protected $fillable = [
         'visitor_id',
-        'weapon_type',
-        'weapon_description',
+        'type',
+        'serial',
+        'description',
+        'status',
+        'returned_at',
+        'returned_by',
+    ];
+
+    protected $casts = [
+        'returned_at' => 'datetime',
     ];
 
     public function visitor()
     {
-        return $this->belongsTo(Visit::class, 'visitor_id');
+        return $this->belongsTo(Visitor::class);
+    }
+
+    public function returnedBy()
+    {
+        return $this->belongsTo(User::class, 'returned_by');
     }
 }
-

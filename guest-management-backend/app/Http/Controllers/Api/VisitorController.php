@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Visitor;
+use App\Models\Weapon;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -43,19 +44,27 @@ class VisitorController extends Controller
 
     public function store(Request $request)
     {
+        // Only secretary can create visitors
+        if ($request->user()->role !== 'secretary') {
+            return response()->json(['message' => 'Unauthorized. Only secretaries can register visitors.'], 403);
+        }
+
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'id_number' => 'required|string|max:255',
             'id_type' => 'nullable|string|max:50',
             'wereda' => 'nullable|string|max:120',
             'subcity' => 'nullable|string|max:120',
-            'photo' => 'nullable|string', // base64 or URL
+            'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'photo' => 'nullable|string',
             'destination' => 'required|string|max:255',
             'visit_purpose' => 'required|string|max:500',
             'vip' => 'boolean',
             'weapons' => 'array',
             'weapons.*.type' => 'required_with:weapons|string|max:255',
             'weapons.*.serial' => 'required_with:weapons|string|max:255',
+            'weapons.*.description' => 'nullable|string|max:500',
         ]);
 
         // Save visitor
@@ -65,21 +74,56 @@ class VisitorController extends Controller
             'id_type' => $data['id_type'] ?? null,
             'wereda' => $data['wereda'] ?? null,
             'subcity' => $data['subcity'] ?? null,
+            'phone' => $data['phone'] ?? null,
+            'email' => $data['email'] ?? null,
             'photo_url' => $data['photo'] ?? null,
             'destination' => $data['destination'],
             'visit_purpose' => $data['visit_purpose'],
             'vip' => $data['vip'] ?? false,
         ]);
 
+        // Add weapons
         foreach ($data['weapons'] ?? [] as $w) {
             $visitor->weapons()->create([
                 'type' => $w['type'],
                 'serial' => $w['serial'],
-                // generate asset_tag server-side if you like
+                'description' => $w['description'] ?? null,
+                'status' => 'stored',
             ]);
         }
 
         return response()->json($visitor->load('weapons')->append('weapons_count'), 201);
+    }
+
+    public function show(Visitor $visitor)
+    {
+        return response()->json($visitor->load('weapons'));
+    }
+
+    public function returnWeapon(Request $request, $visitorId, $weaponId)
+    {
+        // Only secretary can return weapons
+        if ($request->user()->role !== 'secretary') {
+            return response()->json(['message' => 'Unauthorized. Only secretaries can return weapons.'], 403);
+        }
+
+        $visitor = Visitor::findOrFail($visitorId);
+        $weapon = $visitor->weapons()->findOrFail($weaponId);
+
+        if ($weapon->status === 'returned') {
+            return response()->json(['message' => 'Weapon already returned'], 400);
+        }
+
+        $weapon->update([
+            'status' => 'returned',
+            'returned_at' => now(),
+            'returned_by' => $request->user()->id,
+        ]);
+
+        return response()->json([
+            'message' => 'Weapon returned successfully',
+            'weapon' => $weapon
+        ]);
     }
 
     public function archive($id)
@@ -92,7 +136,6 @@ class VisitorController extends Controller
 
     public function export(Request $request): StreamedResponse
     {
-        // reuse index filters
         $request->merge(['per_page' => 1000000]);
         $collection = $this->index($request)->getCollection();
 

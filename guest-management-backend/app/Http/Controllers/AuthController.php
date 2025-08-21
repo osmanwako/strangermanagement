@@ -8,10 +8,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
-
 class AuthController extends Controller
 {
-   
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -26,67 +24,108 @@ class AuthController extends Controller
         }
 
         $request->session()->regenerate();
+        $user = Auth::user();
+
+        // Create token for localStorage fallback
+        $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'user' => Auth::user(),
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+            ],
+            'token' => $token,
             'message' => 'Logged in successfully'
-        ]);
+        ])->cookie('auth_token', $token, 60 * 24 * 7, null, null, false, true); // HTTP-only cookie
     }
     
     public function logout(Request $request)
     {
-        Auth::logout();
+        // Revoke all tokens
+        if ($request->user()) {
+            $request->user()->tokens()->delete();
+        }
 
+        Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return response()->json(['message' => 'Logged out successfully']);
+        return response()->json(['message' => 'Logged out successfully'])
+            ->cookie('auth_token', '', -1); // Clear cookie
     }
 
     public function user(Request $request)
     {
-        return response()->json($request->user());
-    }
-}
-{
-    
-    $credentials = $request->validate([
-        'email' => 'required|email',
-        'password' => 'required',
-    ]);
-
-    if (!Auth::attempt($credentials)) {
-        return response()->json(['message' => 'Username or password error'], 401);
-    }
-
-     $user = User::where('email', $request->email)->first();
-     $token = $user->createToken('auth_token')->plainTextToken;
-
-     return response()->json([
-        'token' => $token,
-        'token_type' => 'Bearer',
-        'user' => $user,
-    ]);
-}
-    
-public function logout(Request $request)
-{
-    Auth::guard('web')->logout();
-
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-
-    return response()->json(['message' => 'Logged out successfully']);
-}
-
-
-    public function user(Request $request)
-    {
+        $user = $request->user();
         return response()->json([
-            'id' => $request->user()->id,
-            'email' => $request->user()->email,
-            'role' => $request->user()->role,
-            'name' => $request->user()->name,
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
         ]);
+    }
+
+    public function createUser(Request $request)
+    {
+        // Only admin can create users
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|min:6',
+            'role' => 'required|in:admin,secretary',
+        ]);
+
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'role' => $validated['role'],
+        ]);
+
+        return response()->json([
+            'message' => 'User created successfully',
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'created_at' => $user->created_at,
+            ]
+        ], 201);
+    }
+
+    public function getUsers(Request $request)
+    {
+        // Only admin can view users
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $users = User::select('id', 'name', 'email', 'role', 'created_at')->get();
+        return response()->json($users);
+    }
+
+    public function deleteUser(Request $request, $id)
+    {
+        // Only admin can delete users
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $user = User::findOrFail($id);
+        
+        // Prevent deleting self
+        if ($user->id === $request->user()->id) {
+            return response()->json(['message' => 'Cannot delete your own account'], 400);
+        }
+
+        $user->delete();
+        return response()->json(['message' => 'User deleted successfully']);
     }
 }

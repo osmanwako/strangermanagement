@@ -15,6 +15,8 @@ class Visitor extends Model
         'id_type',
         'wereda',
         'subcity',
+        'phone',
+        'email',
         'photo_url',
         'destination',
         'visit_purpose',
@@ -27,5 +29,10 @@ class Visitor extends Model
     public function weapons()
     {
         return $this->hasMany(Weapon::class);
+    }
+
+    public function getWeaponsCountAttribute()
+    {
+        return $this->weapons()->count();
     }
 }
